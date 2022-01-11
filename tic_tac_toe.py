@@ -54,11 +54,11 @@ def mark(board, player, row, col):
     return board
 
 
-def win_row(board, user):
+def win_row(board, current_player):
     for row in board:
         complete_row = True
         for slot in row:
-            if slot != user:
+            if slot != current_player:
                 complete_row = False
                 break
         if complete_row:
@@ -78,7 +78,7 @@ def win_col(board):
         return False
 
 
-def win_diagonal(board):
+def win_diagonal(board, current_player):
     if (
         board[0][0] == current_player
         and board[1][1] == current_player
@@ -95,10 +95,13 @@ def win_diagonal(board):
         return False
 
 
-def has_won(board, player):
+def has_won(board, current_player):
     """Returns True if player has won the game."""
-
-    if win_row(board, player) or win_col(board) or win_diagonal(board):
+    if (
+        win_row(board, current_player)
+        or win_col(board)
+        or win_diagonal(board, current_player)
+    ):
         return True
     else:
         return False
@@ -153,6 +156,7 @@ def is_end(board, current_player, turn, winner):
 
 def step(board, current_player, turn, winner, is_AI):
     print_board(board, current_player)
+    print(is_AI)
     if is_AI:
         (row, col) = get_ai_move(board, current_player)
     else:
@@ -161,28 +165,31 @@ def step(board, current_player, turn, winner, is_AI):
     turn, winner = is_end(board, current_player, turn, winner)
     current_player = current_user(current_player)
     turn += 1
-    return turn, winner, board
+    return turn, winner, board, current_player
 
 
 def tictactoe_game(mode, current_player):
-    print(mode)
     board = init_board()
     turn = 0
     winner = ""
+    is_AI_start = {"HUMAN-HUMAN": False, "AI-HUMAN": True, "HUMAN-AI": False}
+    is_AI = is_AI_start[mode]
     # use get_move(), mark(), has_won(), is_full(), and print_board() to create game logic
     while turn < max_turn:
-
         if mode == "HUMAN-HUMAN":
-            is_AI = False
-            turn, winner, board = step(board, current_player, turn, winner, is_AI)
+            turn, winner, board, current_player = step(
+                board, current_player, turn, winner, is_AI
+            )
         elif mode == "AI-HUMAN":
-            is_AI = True
-            turn, winner, board = step(board, current_player, turn, winner, is_AI)
-            change_AI(is_AI)
+            turn, winner, board, current_player = step(
+                board, current_player, turn, winner, is_AI
+            )
+            is_AI = change_AI(is_AI)
         else:
-            is_AI = False
-            turn, winner, board = step(board, current_player, turn, winner, is_AI)
-            change_AI(is_AI)
+            turn, winner, board, current_player = step(
+                board, current_player, turn, winner, is_AI
+            )
+            is_AI = change_AI(is_AI)
 
     print_board(board, current_player)
     print_result(winner)
