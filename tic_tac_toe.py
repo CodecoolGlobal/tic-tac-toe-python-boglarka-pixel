@@ -1,4 +1,4 @@
-import sys
+import time
 import random
 
 # ----- global variables ----
@@ -48,20 +48,15 @@ def get_ai_move(board, player):
         return get_ai_move(board, player)
 
 
-def mark(board, player, row, col):
+def mark(board, current_player, row, col):
     """Marks the element at row & col on the board for player."""
-    board[row][col] = player
+    board[row][col] = current_player
     return board
 
 
 def win_row(board, current_player):
     for row in board:
-        complete_row = True
-        for slot in row:
-            if slot != current_player:
-                complete_row = False
-                break
-        if complete_row:
+        if row[0] == row[1] == row[2] and "." not in row:
             return True
     return False
 
@@ -121,7 +116,7 @@ def print_board(board, current_player):
     print(f"B {board[1][0]} | {board[1][1]} | {board[1][2]}")
     print(" ---+---+---")
     print(f"C {board[2][0]} | {board[2][1]} | {board[2][2]}")
-    print(f"{current_player}'s turn")
+    # print(f"{current_player}'s turn")
 
 
 def print_result(winner):
@@ -156,8 +151,11 @@ def is_end(board, current_player, turn, winner):
 
 def step(board, current_player, turn, winner, is_AI):
     print_board(board, current_player)
-    print(is_AI)
     if is_AI:
+        print("Now AI is start to think!")
+        for i in range(3):
+            time.sleep(0.3)
+            print(".")
         (row, col) = get_ai_move(board, current_player)
     else:
         (row, col) = get_move(board, current_player)
@@ -174,7 +172,6 @@ def tictactoe_game(mode, current_player):
     winner = ""
     is_AI_start = {"HUMAN-HUMAN": False, "AI-HUMAN": True, "HUMAN-AI": False}
     is_AI = is_AI_start[mode]
-    # use get_move(), mark(), has_won(), is_full(), and print_board() to create game logic
     while turn < max_turn:
         if mode == "HUMAN-HUMAN":
             turn, winner, board, current_player = step(
