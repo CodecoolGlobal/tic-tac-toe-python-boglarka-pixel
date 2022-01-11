@@ -13,15 +13,18 @@ def init_board():
     return board
 
 
+def want_quit(move):
+    if move == "quit":
+        exit()
+
+
 def get_move(board, player):
     """Returns the coordinates of a valid move for player on board."""
     rows = {"A": 0, "B": 1, "C": 2}
     cols = {"1": 0, "2": 1, "3": 2}
 
     move = input("Please give me a coordinate!")
-
-    if move == "quit":
-        return ("q", "q")
+    want_quit(move)
 
     if len(move) == 2 and (move[0] in rows.keys() and move[1] in cols.keys()):
         row, col = rows[move[0]], cols[move[1]]
@@ -107,7 +110,7 @@ def is_full(board):
     return "." not in flat_board
 
 
-def print_board(board):
+def print_board(board, current_player):
     """Prints a 3-by-3 board on the screen with borders."""
     print("  1   2   3")
     print(f"A {board[0][0]} | {board[0][1]} | {board[0][2]}")
@@ -115,6 +118,7 @@ def print_board(board):
     print(f"B {board[1][0]} | {board[1][1]} | {board[1][2]}")
     print(" ---+---+---")
     print(f"C {board[2][0]} | {board[2][1]} | {board[2][2]}")
+    print(f"{current_player}'s turn")
 
 
 def print_result(winner):
@@ -123,20 +127,20 @@ def print_result(winner):
 
 
 def current_user(current_player):
-    if current_player:
+    if current_player == "X":
+        return "0"
+    else:
         return "X"
+
+
+def change_AI(is_AI):
+    if is_AI:
+        return False
     else:
-        return "O"
+        return True
 
 
-def human_human(board, turn, winner, max_turn, current_player):
-    print_board(board)
-    print(f"{current_player}'s turn")
-    (row, col) = get_move(board, current_player)
-    if (row, col) == ("q", "q"):
-        print("Thanks for playing")
-        exit()
-    board = mark(board, current_player, row, col)
+def is_end(board, current_player, turn, winner):
     if is_full(board):
         print("No more moves left!")
         winner = "It's a tie!"
@@ -144,41 +148,24 @@ def human_human(board, turn, winner, max_turn, current_player):
     if has_won(board, current_player):
         winner = current_player + " has won!"
         turn = max_turn
-    turn += 1
-    if current_player == "X":
-        current_player = "0"
-    else:
-        current_player = "X"
     return turn, winner
 
 
-def ai_human(board, turn, winner, max_turn):
-    global current_player
-    print_board(board)
-    print(f"{current_player}'s turn")
-    (row, col) = get_move(board, current_player)
-    if (row, col) == ("q", "q"):
-        print("Thanks for playing")
-        exit()
+def step(board, current_player, turn, winner, is_AI):
+    print_board(board, current_player)
+    if is_AI:
+        (row, col) = get_ai_move(board, current_player)
+    else:
+        (row, col) = get_move(board, current_player)
     board = mark(board, current_player, row, col)
-    if is_full(board):
-        print("No more moves left!")
-        winner = "It's a tie!"
-        turn = max_turn
-    if has_won(board, current_player):
-        winner = current_player + " has won!"
-        turn = max_turn
+    turn, winner = is_end(board, current_player, turn, winner)
+    current_player = current_user(current_player)
     turn += 1
-    if current_player == "X":
-        current_player = "0"
-    else:
-        current_player = "X"
-    return turn, winner
+    return turn, winner, board
 
 
-def tictactoe_game(mode):
+def tictactoe_game(mode, current_player):
     print(mode)
-    global current_player
     board = init_board()
     turn = 0
     winner = ""
@@ -186,13 +173,18 @@ def tictactoe_game(mode):
     while turn < max_turn:
 
         if mode == "HUMAN-HUMAN":
-            turn, winner = human_human(board, turn, winner, max_turn)
+            is_AI = False
+            turn, winner, board = step(board, current_player, turn, winner, is_AI)
         elif mode == "AI-HUMAN":
-            turn, winner = ai_human(board, turn, winner, max_turn)
+            is_AI = True
+            turn, winner, board = step(board, current_player, turn, winner, is_AI)
+            change_AI(is_AI)
         else:
-            turn, winner = human_ai(board, turn, winner, max_turn)
+            is_AI = False
+            turn, winner, board = step(board, current_player, turn, winner, is_AI)
+            change_AI(is_AI)
 
-    print_board(board)
+    print_board(board, current_player)
     print_result(winner)
 
 
@@ -204,7 +196,7 @@ def main_menu():
 
     try:
         mode = levels[mode]
-        tictactoe_game(mode)
+        tictactoe_game(mode, current_player)
     except KeyError:
         print("Your choosed mode is invalid!")
         return main_menu()
