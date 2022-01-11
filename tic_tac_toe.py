@@ -1,8 +1,10 @@
+import sys
+import random
+
 # ----- global variables ----
 
 current_player = "X"
 max_turn = 9
-user = True
 
 
 def init_board():
@@ -35,8 +37,12 @@ def get_move(board, player):
 
 def get_ai_move(board, player):
     """Returns the coordinates of a valid move for player on board."""
-    row, col = 0, 0
-    return row, col
+    row, col = random.randrange(3), random.randrange(3)
+
+    if board[row][col] == ".":
+        return (row, col)
+    else:
+        return get_ai_move(board, player)
 
 
 def mark(board, player, row, col):
@@ -116,47 +122,92 @@ def print_result(winner):
     return print(f"{winner}")
 
 
-def current_user(user):
-    if user:
+def current_user(current_player):
+    if current_player:
         return "X"
     else:
         return "O"
 
 
-def tictactoe_game(mode="HUMAN-HUMAN"):
-    global current_player
+def human_human(board, turn, winner, max_turn, current_player):
+    print_board(board)
+    print(f"{current_player}'s turn")
+    (row, col) = get_move(board, current_player)
+    if (row, col) == ("q", "q"):
+        print("Thanks for playing")
+        exit()
+    board = mark(board, current_player, row, col)
+    if is_full(board):
+        print("No more moves left!")
+        winner = "It's a tie!"
+        turn = max_turn
+    if has_won(board, current_player):
+        winner = current_player + " has won!"
+        turn = max_turn
+    turn += 1
+    if current_player == "X":
+        current_player = "0"
+    else:
+        current_player = "X"
+    return turn, winner
 
+
+def ai_human(board, turn, winner, max_turn):
+    global current_player
+    print_board(board)
+    print(f"{current_player}'s turn")
+    (row, col) = get_move(board, current_player)
+    if (row, col) == ("q", "q"):
+        print("Thanks for playing")
+        exit()
+    board = mark(board, current_player, row, col)
+    if is_full(board):
+        print("No more moves left!")
+        winner = "It's a tie!"
+        turn = max_turn
+    if has_won(board, current_player):
+        winner = current_player + " has won!"
+        turn = max_turn
+    turn += 1
+    if current_player == "X":
+        current_player = "0"
+    else:
+        current_player = "X"
+    return turn, winner
+
+
+def tictactoe_game(mode):
+    print(mode)
+    global current_player
     board = init_board()
     turn = 0
     winner = ""
     # use get_move(), mark(), has_won(), is_full(), and print_board() to create game logic
     while turn < max_turn:
-        print_board(board)
-        print(f"{current_player}'s turn")
-        (row, col) = get_move(board, current_player)
-        if (row, col) == ("q", "q"):
-            print("Thanks for playing")
-            exit()
-        board = mark(board, current_player, row, col)
-        if is_full(board):
-            print("No more moves left!")
-            winner = "It's a tie!"
-            break
-        if has_won(board, current_player):
-            winner = current_player + " has won!"
-            break
-        turn += 1
-        if current_player == "X":
-            current_player = "0"
+
+        if mode == "HUMAN-HUMAN":
+            turn, winner = human_human(board, turn, winner, max_turn)
+        elif mode == "AI-HUMAN":
+            turn, winner = ai_human(board, turn, winner, max_turn)
         else:
-            current_player = "X"
+            turn, winner = human_ai(board, turn, winner, max_turn)
 
     print_board(board)
     print_result(winner)
 
 
 def main_menu():
-    tictactoe_game("HUMAN-HUMAN")
+    mode = input(
+        "Please choose a game mode (1 = HUMAN-HUMAN, 2 = AI-HUMAN, 3 = HUMAN-AI): "
+    )
+    levels = {"1": "HUMAN-HUMAN", "2": "AI-HUMAN", "3": "HUMAN-AI"}
+
+    try:
+        mode = levels[mode]
+        tictactoe_game(mode)
+    except KeyError:
+        print("Your choosed mode is invalid!")
+        return main_menu()
 
 
 if __name__ == "__main__":
