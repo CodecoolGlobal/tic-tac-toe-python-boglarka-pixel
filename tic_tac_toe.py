@@ -272,6 +272,13 @@ def tictactoe_game(mode, current_player):
             )
     print_board(board, current_player)
     print_result(winner)
+    if "tie" not in winner:
+        print(
+            """
+        {\__/}
+        ( ●_●) CONGRATULATION
+        ( > 🍪 You won a cookie! \n"""
+        )
 
 
 def main_menu():
