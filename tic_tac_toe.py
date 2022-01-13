@@ -56,36 +56,34 @@ def get_move(board, player):
         return get_move(board, player)
 
 
-def easy_win_row(board):
+def easy_win_row(board, player):
     row, col = "a", "a"
     for i in range(len(board)):
-        if board[i].count(".") == 1 and (
-            board[i].count("X") == 2 or board[i].count("0") == 2
-        ):
+        if board[i].count(".") == 1 and (board[i].count(player) == 2):
             col = board[i].index(".")
             row = i
     return row, col
 
 
-def easy_win_col(board):
+def easy_win_col(board, player):
     trans_board = [[], [], []]
     for i in range(len(trans_board)):
         for row in board:
             trans_board[i].append(row[i])
 
-    row, col = easy_win_row(trans_board)
+    row, col = easy_win_row(trans_board, player)
     board_col = row
     board_row = col
     return board_row, board_col
 
 
-def easy_win_diagonal(board):
+def easy_win_diagonal(board, player):
     a_diagonal = [[board[0][0], board[1][1], board[2][2]]]
     b_diagonal = [[board[0][2], board[1][1], board[2][0]]]
-    row, col = easy_win_row(a_diagonal)
+    row, col = easy_win_row(a_diagonal, player)
     board_row = board_col = col
     if board_col == "a":
-        row, col = easy_win_row(b_diagonal)
+        row, col = easy_win_row(b_diagonal, player)
         if col != "a":
             board_row = col
             board_col = 2 - col
@@ -95,15 +93,23 @@ def easy_win_diagonal(board):
 def get_ai_move(board, player):
     """Returns the coordinates of a valid move for player on board."""
     flat_board = [item for sublist in board for item in sublist]
-    row, col = "a", "a"
+
     if flat_board.count(".") == 9:
         row, col = 1, 1
-
-    row, col = easy_win_diagonal(board)
+    else:
+        row, col = "a", "a"
     if (row, col) == ("a", "a"):
-        row, col = easy_win_col(board)
+        row, col = easy_win_diagonal(board, player)
     if (row, col) == ("a", "a"):
-        row, col = easy_win_row(board)
+        row, col = easy_win_col(board, player)
+    if (row, col) == ("a", "a"):
+        row, col = easy_win_row(board, player)
+    if (row, col) == ("a", "a"):
+        row, col = easy_win_diagonal(board, current_user(player))
+    if (row, col) == ("a", "a"):
+        row, col = easy_win_col(board, current_user(player))
+    if (row, col) == ("a", "a"):
+        row, col = easy_win_row(board, current_user(player))
     if (row, col) == ("a", "a"):
         row, col = random.randrange(3), random.randrange(3)
 
@@ -201,9 +207,6 @@ def current_user(current_player):
         return "X"
 
 
-# print(bcolors.HEADER + "header" + bcolors.ENDC)
-
-
 def change_AI(is_AI):
     if is_AI:
         return False
@@ -224,7 +227,11 @@ def is_end(board, current_player, turn, winner):
 def step(board, current_player, turn, winner, is_AI):
     print_board(board, current_player)
     if is_AI:
-        print("\nNow AI is start to think!")
+        messageX = bcolors.USERX + "\nNow AI is thinking!" + bcolors.ENDC
+        message0 = bcolors.USER0 + "\nNow AI is thinking!" + bcolors.ENDC
+        message = messageX if current_player == "X" else message0
+        # time.sleep(1)
+        print(message)
         time.sleep(1)
         (row, col) = get_ai_move(board, current_player)
     else:
@@ -233,7 +240,7 @@ def step(board, current_player, turn, winner, is_AI):
     turn, winner = is_end(board, current_player, turn, winner)
     current_player = current_user(current_player)
     turn += 1
-    time.sleep(0.5)
+    time.sleep(1)
 
     return turn, winner, board, current_player
 
@@ -250,7 +257,10 @@ def tictactoe_game(mode, current_player):
     }
     is_AI = is_AI_start[mode]
     while turn < max_turn:
-        print(f"\n  {current_player}'s turn")
+        messageX = bcolors.USERX + "\n  X's turn!" + bcolors.ENDC
+        message0 = bcolors.USER0 + "\n  0's turn" + bcolors.ENDC
+        message = messageX if current_player == "X" else message0
+        print(message)
         if mode == "HUMAN-HUMAN":
             turn, winner, board, current_player = step(
                 board, current_player, turn, winner, is_AI
@@ -269,30 +279,30 @@ def tictactoe_game(mode, current_player):
             turn, winner, board, current_player = step(
                 board, current_player, turn, winner, is_AI
             )
-    print("No more moves left!")
+    print("\n")
     print_board(board, current_player)
-    print_result(winner)
+    print_result(f"\n{winner}")
     if "tie" not in winner:
         if not is_AI:
             print(
                 """
-            {\__/}
-            ( ●_●) CONGRATULATION
-            ( > 🍪 You won this cookie! \n"""
+{\__/}
+( ●_●) CONGRATULATION
+( > 🍪 You won this cookie! \n"""
             )
         else:
             print(
                 """
-            {\__/}
-            ( ●_●) CONGRATULATION
-            ( > ⚡ You won this energy! \n"""
+{\__/}
+( ●_●) CONGRATULATION
+( > ⚡ You won this energy! \n"""
             )
     else:
         print(
             """
-        {\__/}
-        ( ●_●) NOT YET
-        ( 🎁< Nobody won this gift yet! \n"""
+{\__/}
+( ●_●) NOT YET
+( 🎁< Nobody won this gift yet! \n"""
         )
 
 
@@ -306,7 +316,7 @@ def main_menu():
         mode = levels[mode]
         tictactoe_game(mode, current_player)
     except KeyError:
-        print("Your choosed mode is invalid!")
+        print("The choosed mode is invalid!")
         return main_menu()
 
 
