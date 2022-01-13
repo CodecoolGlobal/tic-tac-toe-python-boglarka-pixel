@@ -37,7 +37,7 @@ def get_move(board, player):
     rows = {"A": 0, "B": 1, "C": 2}
     cols = {"1": 0, "2": 1, "3": 2}
 
-    move = input("\nPlease give me a coordinate!\n")
+    move = input("\nPlease give me a coordinate! ")
     want_quit(move)
 
     if len(move) == 2 and (move[0] in rows.keys() and move[1] in cols.keys()):
@@ -187,7 +187,6 @@ def print_board(board, current_player):
     print(f"B {colored_board[1][0]} | {colored_board[1][1]} | {colored_board[1][2]}")
     print(" ---+---+---")
     print(f"C {colored_board[2][0]} | {colored_board[2][1]} | {colored_board[2][2]}")
-    print(f"\n{current_player}'s turn!")
 
 
 def print_result(winner):
@@ -214,11 +213,10 @@ def change_AI(is_AI):
 
 def is_end(board, current_player, turn, winner):
     if is_full(board):
-        print("No more moves left!")
         winner = bcolors.WINNERGREEN + "It's a tie!" + bcolors.ENDC
         turn = max_turn
     if has_won(board, current_player):
-        winner = bcolors.WINNERGREEN + current_player + " has won!" + bcolors.ENDC
+        winner = bcolors.WINNERGREEN + "The winner is: " + current_player + bcolors.ENDC
         turn = max_turn
     return turn, winner
 
@@ -226,8 +224,8 @@ def is_end(board, current_player, turn, winner):
 def step(board, current_player, turn, winner, is_AI):
     print_board(board, current_player)
     if is_AI:
-        print("\nNow AI is start to think!\n")
-        time.sleep(0.5)
+        print("\nNow AI is start to think!")
+        time.sleep(1)
         (row, col) = get_ai_move(board, current_player)
     else:
         (row, col) = get_move(board, current_player)
@@ -252,6 +250,7 @@ def tictactoe_game(mode, current_player):
     }
     is_AI = is_AI_start[mode]
     while turn < max_turn:
+        print(f"\n  {current_player}'s turn")
         if mode == "HUMAN-HUMAN":
             turn, winner, board, current_player = step(
                 board, current_player, turn, winner, is_AI
@@ -270,14 +269,30 @@ def tictactoe_game(mode, current_player):
             turn, winner, board, current_player = step(
                 board, current_player, turn, winner, is_AI
             )
+    print("No more moves left!")
     print_board(board, current_player)
     print_result(winner)
     if "tie" not in winner:
+        if not is_AI:
+            print(
+                """
+            {\__/}
+            ( ●_●) CONGRATULATION
+            ( > 🍪 You won this cookie! \n"""
+            )
+        else:
+            print(
+                """
+            {\__/}
+            ( ●_●) CONGRATULATION
+            ( > ⚡ You won this energy! \n"""
+            )
+    else:
         print(
             """
         {\__/}
-        ( ●_●) CONGRATULATION
-        ( > 🍪 You won a cookie! \n"""
+        ( ●_●) NOT YET
+        ( 🎁< Nobody won this gift yet! \n"""
         )
 
 
