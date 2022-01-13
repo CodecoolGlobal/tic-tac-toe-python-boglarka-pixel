@@ -1,8 +1,22 @@
 import time
 import random
 
-# ----- global variables ----
+""" Remaining tasks:
+    AI goes for easy win
+    AI prevents easy lose
+    Unbeatable AI
+    """
 
+
+class bcolors:
+    USERX = "\033[95m"
+    USER0 = "\033[94m"
+    WINNERGREEN = "\033[92m"
+    WRONG = "\033[93m"
+    ENDC = "\033[0m"
+
+
+# -----  constant global variables ----
 current_player = "X"
 max_turn = 9
 
@@ -23,7 +37,7 @@ def get_move(board, player):
     rows = {"A": 0, "B": 1, "C": 2}
     cols = {"1": 0, "2": 1, "3": 2}
 
-    move = input("Please give me a coordinate!")
+    move = input("\nPlease give me a coordinate!\n")
     want_quit(move)
 
     if len(move) == 2 and (move[0] in rows.keys() and move[1] in cols.keys()):
@@ -31,16 +45,67 @@ def get_move(board, player):
         if board[row][col] == ".":
             return (row, col)
         else:
-            print("This coordinate is already taken!")
+            print(bcolors.WRONG + "This coordinate is already taken!" + bcolors.ENDC)
             return get_move(board, player)
     else:
-        print("Give me valid coordinate!!! Combine (A, B, C) with (1, 2, 3)")
+        print(
+            bcolors.WRONG
+            + "Give me valid coordinate!!! Combine (A, B, C) with (1, 2, 3)"
+            + bcolors.ENDC
+        )
         return get_move(board, player)
+
+
+def easy_win_row(board):
+    row, col = "a", "a"
+    for i in range(len(board)):
+        if board[i].count(".") == 1 and (
+            board[i].count("X") == 2 or board[i].count("0") == 2
+        ):
+            col = board[i].index(".")
+            row = i
+    return row, col
+
+
+def easy_win_col(board):
+    trans_board = [[], [], []]
+    for i in range(len(trans_board)):
+        for row in board:
+            trans_board[i].append(row[i])
+
+    row, col = easy_win_row(trans_board)
+    board_col = row
+    board_row = col
+    return board_row, board_col
+
+
+def easy_win_diagonal(board):
+    a_diagonal = [[board[0][0], board[1][1], board[2][2]]]
+    b_diagonal = [[board[0][2], board[1][1], board[2][0]]]
+    row, col = easy_win_row(a_diagonal)
+    board_row = board_col = col
+    if board_col == "a":
+        row, col = easy_win_row(b_diagonal)
+        if col != "a":
+            board_row = col
+            board_col = 2 - col
+    return board_row, board_col
 
 
 def get_ai_move(board, player):
     """Returns the coordinates of a valid move for player on board."""
-    row, col = random.randrange(3), random.randrange(3)
+    flat_board = [item for sublist in board for item in sublist]
+    row, col = "a", "a"
+    if flat_board.count(".") == 9:
+        row, col = 1, 1
+
+    row, col = easy_win_diagonal(board)
+    if (row, col) == ("a", "a"):
+        row, col = easy_win_col(board)
+    if (row, col) == ("a", "a"):
+        row, col = easy_win_row(board)
+    if (row, col) == ("a", "a"):
+        row, col = random.randrange(3), random.randrange(3)
 
     if board[row][col] == ".":
         return (row, col)
@@ -54,7 +119,7 @@ def mark(board, current_player, row, col):
     return board
 
 
-def win_row(board, current_player):
+def win_row(board):
     for row in board:
         if row[0] == row[1] == row[2] and "." not in row:
             return True
@@ -63,11 +128,13 @@ def win_row(board, current_player):
 
 def win_col(board):
     board = [item for sublist in board for item in sublist]
-    if board[0:7:3] == ["X", "X", "X"] or board[0:7:3] == ["0", "0", "0"]:
+    x = "X"
+    o = "0"
+    if board[0:7:3] == [x, x, x] or board[0:7:3] == [o, o, o]:
         return True
-    elif board[1:8:3] == ["X", "X", "X"] or board[0:7:3] == ["0", "0", "0"]:
+    elif board[1:8:3] == [x, x, x] or board[0:7:3] == [o, o, o]:
         return True
-    elif board[2::3] == ["X", "X", "X"] or board[0:7:3] == ["0", "0", "0"]:
+    elif board[2::3] == [x, x, x] or board[0:7:3] == [o, o, o]:
         return True
     else:
         return False
@@ -92,11 +159,7 @@ def win_diagonal(board, current_player):
 
 def has_won(board, current_player):
     """Returns True if player has won the game."""
-    if (
-        win_row(board, current_player)
-        or win_col(board)
-        or win_diagonal(board, current_player)
-    ):
+    if win_row(board) or win_col(board) or win_diagonal(board, current_player):
         return True
     else:
         return False
@@ -110,13 +173,21 @@ def is_full(board):
 
 def print_board(board, current_player):
     """Prints a 3-by-3 board on the screen with borders."""
+    colored_board = [[".", ".", "."], [".", ".", "."], [".", ".", "."]]
+    for rowi in range(len(board)):
+        for itemi in range(len(board[rowi])):
+            if board[rowi][itemi] == "X":
+                colored_board[rowi][itemi] = bcolors.USERX + "X" + bcolors.ENDC
+            elif board[rowi][itemi] == "0":
+                colored_board[rowi][itemi] = bcolors.USER0 + "0" + bcolors.ENDC
+
     print("  1   2   3")
-    print(f"A {board[0][0]} | {board[0][1]} | {board[0][2]}")
+    print(f"A {colored_board[0][0]} | {colored_board[0][1]} | {colored_board[0][2]}")
     print(" ---+---+---")
-    print(f"B {board[1][0]} | {board[1][1]} | {board[1][2]}")
+    print(f"B {colored_board[1][0]} | {colored_board[1][1]} | {colored_board[1][2]}")
     print(" ---+---+---")
-    print(f"C {board[2][0]} | {board[2][1]} | {board[2][2]}")
-    # print(f"{current_player}'s turn")
+    print(f"C {colored_board[2][0]} | {colored_board[2][1]} | {colored_board[2][2]}")
+    print(f"\n{current_player}'s turn!")
 
 
 def print_result(winner):
@@ -131,6 +202,9 @@ def current_user(current_player):
         return "X"
 
 
+# print(bcolors.HEADER + "header" + bcolors.ENDC)
+
+
 def change_AI(is_AI):
     if is_AI:
         return False
@@ -141,10 +215,10 @@ def change_AI(is_AI):
 def is_end(board, current_player, turn, winner):
     if is_full(board):
         print("No more moves left!")
-        winner = "It's a tie!"
+        winner = bcolors.WINNERGREEN + "It's a tie!" + bcolors.ENDC
         turn = max_turn
     if has_won(board, current_player):
-        winner = current_player + " has won!"
+        winner = bcolors.WINNERGREEN + current_player + " has won!" + bcolors.ENDC
         turn = max_turn
     return turn, winner
 
@@ -152,10 +226,8 @@ def is_end(board, current_player, turn, winner):
 def step(board, current_player, turn, winner, is_AI):
     print_board(board, current_player)
     if is_AI:
-        print("Now AI is start to think!")
-        for i in range(3):
-            time.sleep(0.3)
-            print(".")
+        print("\nNow AI is start to think!\n")
+        time.sleep(0.5)
         (row, col) = get_ai_move(board, current_player)
     else:
         (row, col) = get_move(board, current_player)
@@ -163,6 +235,8 @@ def step(board, current_player, turn, winner, is_AI):
     turn, winner = is_end(board, current_player, turn, winner)
     current_player = current_user(current_player)
     turn += 1
+    time.sleep(0.5)
+
     return turn, winner, board, current_player
 
 
@@ -170,7 +244,12 @@ def tictactoe_game(mode, current_player):
     board = init_board()
     turn = 0
     winner = ""
-    is_AI_start = {"HUMAN-HUMAN": False, "AI-HUMAN": True, "HUMAN-AI": False}
+    is_AI_start = {
+        "HUMAN-HUMAN": False,
+        "AI-HUMAN": True,
+        "HUMAN-AI": False,
+        "AI-AI": True,
+    }
     is_AI = is_AI_start[mode]
     while turn < max_turn:
         if mode == "HUMAN-HUMAN":
@@ -182,21 +261,24 @@ def tictactoe_game(mode, current_player):
                 board, current_player, turn, winner, is_AI
             )
             is_AI = change_AI(is_AI)
-        else:
+        elif mode == "HUMAN-AI":
             turn, winner, board, current_player = step(
                 board, current_player, turn, winner, is_AI
             )
             is_AI = change_AI(is_AI)
-
+        else:
+            turn, winner, board, current_player = step(
+                board, current_player, turn, winner, is_AI
+            )
     print_board(board, current_player)
     print_result(winner)
 
 
 def main_menu():
     mode = input(
-        "Please choose a game mode (1 = HUMAN-HUMAN, 2 = AI-HUMAN, 3 = HUMAN-AI): "
+        "Please choose a game mode (1 = HUMAN-HUMAN, 2 = AI-HUMAN, 3 = HUMAN-AI, 4 = AI-AI): "
     )
-    levels = {"1": "HUMAN-HUMAN", "2": "AI-HUMAN", "3": "HUMAN-AI"}
+    levels = {"1": "HUMAN-HUMAN", "2": "AI-HUMAN", "3": "HUMAN-AI", "4": "AI-AI"}
 
     try:
         mode = levels[mode]
