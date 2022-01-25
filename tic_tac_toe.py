@@ -95,21 +95,17 @@ def get_ai_move(board, player):
     flat_board = [item for sublist in board for item in sublist]
 
     if flat_board.count(".") == 9:
-        row, col = 1, 1
+        row, col = 1, 1  # coord = 1, 1
     else:
-        row, col = "a", "a"
-    if (row, col) == ("a", "a"):
-        row, col = easy_win_diagonal(board, player)
-    if (row, col) == ("a", "a"):
-        row, col = easy_win_col(board, player)
-    if (row, col) == ("a", "a"):
-        row, col = easy_win_row(board, player)
-    if (row, col) == ("a", "a"):
-        row, col = easy_win_diagonal(board, current_user(player))
-    if (row, col) == ("a", "a"):
-        row, col = easy_win_col(board, current_user(player))
-    if (row, col) == ("a", "a"):
-        row, col = easy_win_row(board, current_user(player))
+        row, col = "a", "a"  # None
+
+    easy_list = [easy_win_diagonal, easy_win_col, easy_win_row]
+    for player_for in [player, current_user(player)]:  #!!!
+        i = 0
+        while (row, col) == ("a", "a") and i < 3:  # while coord is None and i < 3:
+            row, col = easy_list[i](board, player_for)
+            i += 1
+
     if (row, col) == ("a", "a"):
         row, col = random.randrange(3), random.randrange(3)
 
@@ -261,24 +257,12 @@ def tictactoe_game(mode, current_player):
         message0 = bcolors.USER0 + "\n  0's turn" + bcolors.ENDC
         message = messageX if current_player == "X" else message0
         print(message)
-        if mode == "HUMAN-HUMAN":
-            turn, winner, board, current_player = step(
-                board, current_player, turn, winner, is_AI
-            )
-        elif mode == "AI-HUMAN":
-            turn, winner, board, current_player = step(
-                board, current_player, turn, winner, is_AI
-            )
+        turn, winner, board, current_player = step(
+            board, current_player, turn, winner, is_AI
+        )
+        if mode == "AI-HUMAN" or mode == "HUMAN-AI":
             is_AI = change_AI(is_AI)
-        elif mode == "HUMAN-AI":
-            turn, winner, board, current_player = step(
-                board, current_player, turn, winner, is_AI
-            )
-            is_AI = change_AI(is_AI)
-        else:
-            turn, winner, board, current_player = step(
-                board, current_player, turn, winner, is_AI
-            )
+
     print("\n")
     print_board(board, current_player)
     print_result(f"\n{winner}")
